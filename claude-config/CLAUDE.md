@@ -36,3 +36,12 @@
 @~/.claude/rules/sdd-orchestrator.md
 
 Strict TDD Mode: enabled
+
+## Personal overrides (optional, local-only)
+
+Create `~/.claude/CLAUDE.local.md` with your personal identity, tone, language
+preferences, or project context. The file is gitignored — never gets pushed
+to the team repo. The `INSTALL.sh` / `INSTALL.ps1` and `UPDATE.sh` preserve
+it across updates.
+
+@~/.claude/CLAUDE.local.md
