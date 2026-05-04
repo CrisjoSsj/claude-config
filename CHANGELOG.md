@@ -2,6 +2,22 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.1.0] — 2026-05-03
+
+### Changed (BREAKING for existing users? NO — safer)
+- **`INSTALL.sh` / `INSTALL.ps1` are now NON-DESTRUCTIVE.** Existing user configs are preserved:
+  - `CLAUDE.md`: marker-based merge (`<!-- claude-config:start/end -->`). Custom content outside markers preserved across updates.
+  - `settings.json`: deep-merged. Your hooks, permissions, plugins, and custom keys are preserved alongside ours.
+  - `rules/`: no-clobber. Same-named files you have are NEVER overwritten — we only add ours that don't exist. Conflicts are reported.
+  - `templates/`: no-clobber. Your customizations preserved.
+  - `agents/`, `skills/`, `commands/`, `plugins/`, `sessions/`, `cache/`: untouched.
+- Added `tools/merge-settings.js` and `tools/merge-claude-md.js` Node helpers (Node ≥14 required).
+- Smoke test added: simulates user with existing config, validates 10 preservation invariants.
+
+### Added
+- `CLAUDE.local.md` scaffold auto-created on fresh install (gitignored, for personal config).
+- Detailed install summary showing what was preserved, merged, and added.
+
 ## [1.0.0] — 2026-05-03
 
 ### Added

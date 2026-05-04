@@ -3,6 +3,8 @@
 > Setup oficial de Claude Code.
 > Idéntico para todos. Sin variación. Sincroniza con un comando.
 
+> **v1.1.0**: el installer ahora es **100% no-destructivo**. Si ya tenés `~/.claude/CLAUDE.md`, hooks, permissions, agents, skills o rules propias, NADA se sobreescribe — todo se mergea o preserva. Backup automático antes de cualquier cambio.
+
 ## Quickstart
 
 ### macOS / Linux
@@ -105,6 +107,23 @@ cd ~/.claude-config && bash UPDATE.sh
 ```
 
 `UPDATE.sh` hace pull, re-ejecuta install respetando tu `CLAUDE.local.md` (notas personales, gitignored).
+
+## Cómo trata configs ya existentes (v1.1.0+)
+
+| Archivo / carpeta | Comportamiento del installer | Dónde queda lo tuyo |
+|---|---|---|
+| `~/.claude/CLAUDE.md` | **Marker-based merge**. Replace solo entre `<!-- claude-config:start -->` y `<!-- claude-config:end -->`. | Tu contenido afuera de los markers se preserva en cada update. |
+| `~/.claude/settings.json` | **Deep-merge**. Hooks ∪ permissions ∪ plugins ∪ custom keys. | Tus hooks personales conviven con los nuestros. Tus permissions allow/deny se concatenan. Tus keys custom se preservan. |
+| `~/.claude/rules/<file>.md` (mismo nombre que el nuestro) | **No-clobber**. Si ya existe con contenido distinto, lo dejamos como está. | El installer reporta los archivos skippeados. Para forzar uno: `cp <repo>/rules/<file> ~/.claude/rules/<file>`. |
+| `~/.claude/rules/<custom>.md` (nombre nuevo tuyo) | Preservado | — |
+| `~/.claude/scripts/` | Sobreescrito (es tooling, no contenido del usuario) | — |
+| `~/.claude/templates/` | No-clobber | Tus templates personalizados quedan. |
+| `~/.claude/agents/`, `skills/`, `commands/` | **Intactos** — el installer NO toca estas carpetas | — |
+| `~/.claude/plugins/`, `sessions/`, `cache/`, `history.jsonl` | **Intactos** | — |
+| `~/.claude/CLAUDE.local.md` | **Preservado siempre**. Si no existe, se crea un scaffold. | Acá va tu identidad personal. Gitignored. |
+| `~/.claude/credentials.json` | **Preservado siempre** | — |
+
+Antes de cualquier cambio, el installer hace un backup completo en `~/.claude.backup.<fecha-hora>/`. Si algo sale mal, corré `bash UNINSTALL.sh` para restaurar el último backup.
 
 ## Tu config personal
 

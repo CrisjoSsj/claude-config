@@ -1,25 +1,26 @@
-# INSTALL.ps1 — installer Windows PowerShell para claude-config
+# INSTALL.ps1 — non-destructive installer for Windows PowerShell.
 #
-# Comentario en español: instala el setup en %USERPROFILE%\.claude\, hace backup
-# automático, verifica que todo cargó bien, e imprime versión instalada.
+# Comentario en español: NO sobreescribe configs existentes. Deep-merge de
+# settings.json, marcadores en CLAUDE.md, no-clobber en rules/. Backup automático.
 
 $ErrorActionPreference = "Stop"
 
 $RepoDir   = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $SourceDir = Join-Path $RepoDir "claude-config"
+$ToolsDir  = Join-Path $RepoDir "tools"
 $TargetDir = Join-Path $env:USERPROFILE ".claude"
 $Stamp     = Get-Date -Format "yyyy-MM-dd-HHmmss"
 $BackupDir = Join-Path $env:USERPROFILE ".claude.backup.$Stamp"
-$Version   = if (Test-Path "$RepoDir\VERSION") { Get-Content "$RepoDir\VERSION" -Raw } else { "unknown" }
-$Version   = $Version.Trim()
+$Version   = if (Test-Path "$RepoDir\VERSION") { (Get-Content "$RepoDir\VERSION" -Raw).Trim() } else { "unknown" }
 
-function Log    { param($msg) Write-Host "  $msg" }
-function OK     { param($msg) Write-Host "  ✅ $msg" -ForegroundColor Green }
-function WarnMsg{ param($msg) Write-Host "  ⚠️  $msg" -ForegroundColor Yellow }
-function ErrMsg { param($msg) Write-Host "  ❌ $msg" -ForegroundColor Red }
+function Log     { param($m) Write-Host "  $m" }
+function OK      { param($m) Write-Host "  ✅ $m" -ForegroundColor Green }
+function WarnMsg { param($m) Write-Host "  ⚠️  $m" -ForegroundColor Yellow }
+function ErrMsg  { param($m) Write-Host "  ❌ $m" -ForegroundColor Red }
+function Info    { param($m) Write-Host "  ℹ️  $m" -ForegroundColor Cyan }
 
 Write-Host ""
-Write-Host "🔧 Installing claude-config v$Version"
+Write-Host "🔧 Installing claude-config v$Version (non-destructive merge)"
 Write-Host ""
 
 if (-not (Test-Path $SourceDir)) {
@@ -27,67 +28,133 @@ if (-not (Test-Path $SourceDir)) {
     exit 1
 }
 
-# 1. Backup existing
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    ErrMsg "Node.js required for safe merge. Install: https://nodejs.org/"
+    exit 1
+}
+
+# 1. Backup
 if (Test-Path $TargetDir) {
     Log "Backing up existing $TargetDir → $BackupDir"
     Copy-Item -Path $TargetDir -Destination $BackupDir -Recurse -Force
-    OK "Backup created at $BackupDir"
+    OK "Backup created"
 } else {
-    Log "No existing ~/.claude/ found, fresh install"
+    Log "Fresh install — no existing ~/.claude/"
     New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
 }
 
-# 2. Preserve personal files
-$Preserve = @("CLAUDE.local.md", "credentials.json", "history.jsonl")
-$TmpDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP "claude-config-preserve-$Stamp") -Force
-foreach ($f in $Preserve) {
-    $src = Join-Path $TargetDir $f
-    if (Test-Path $src) {
-        Copy-Item $src $TmpDir -Force
-        Log "Preserving $f"
+# 2. CLAUDE.md (marker-based merge)
+Log "Merging CLAUDE.md (marker-based)..."
+& node (Join-Path $ToolsDir "merge-claude-md.js") (Join-Path $TargetDir "CLAUDE.md") (Join-Path $SourceDir "CLAUDE.md")
+
+# 3. settings.json (deep merge)
+Log "Merging settings.json (deep merge)..."
+$userSettings = Join-Path $TargetDir "settings.json"
+$ourSettings  = Join-Path $SourceDir "settings.json"
+if (Test-Path $userSettings) {
+    & node (Join-Path $ToolsDir "merge-settings.js") $userSettings $ourSettings
+} else {
+    Copy-Item $ourSettings $userSettings -Force
+    OK "settings.json: created (no existing user file)"
+}
+
+# 4. rules/ (no-clobber)
+Log "Installing rules/ (no-clobber)..."
+$rulesDst = Join-Path $TargetDir "rules"
+New-Item -ItemType Directory -Force -Path $rulesDst | Out-Null
+$rulesSrc = Join-Path $SourceDir "rules"
+$skipped = @()
+$added = 0
+Get-ChildItem -Path $rulesSrc -Recurse -File | ForEach-Object {
+    $rel = $_.FullName.Substring($rulesSrc.Length + 1)
+    $dst = Join-Path $rulesDst $rel
+    $dstDir = Split-Path $dst -Parent
+    if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Force -Path $dstDir | Out-Null }
+    if (Test-Path $dst) {
+        $userHash = (Get-FileHash $dst).Hash
+        $ourHash = (Get-FileHash $_.FullName).Hash
+        if ($userHash -ne $ourHash) { $skipped += $rel }
+    } else {
+        Copy-Item $_.FullName $dst -Force
+        $added++
     }
 }
-
-# 3. Copy config files
-Log "Installing config files..."
-Copy-Item (Join-Path $SourceDir "CLAUDE.md") $TargetDir -Force
-if (Test-Path (Join-Path $SourceDir "settings.json")) {
-    Copy-Item (Join-Path $SourceDir "settings.json") $TargetDir -Force
+OK "rules/: $added new files added"
+if ($skipped.Count -gt 0) {
+    WarnMsg "rules/: $($skipped.Count) files differ from yours — kept yours:"
+    $skipped | ForEach-Object { Write-Host "       - $_" }
 }
 
-foreach ($sub in @("rules", "scripts", "templates")) {
-    $src = Join-Path $SourceDir $sub
-    $dst = Join-Path $TargetDir $sub
-    if (Test-Path $src) {
-        if (-not (Test-Path $dst)) { New-Item -ItemType Directory -Path $dst | Out-Null }
-        Copy-Item -Path "$src\*" -Destination $dst -Recurse -Force
-        OK "Installed $sub/"
+# 5. scripts/ (always overwrite)
+Log "Installing scripts/ (overwrite)..."
+$scriptsDst = Join-Path $TargetDir "scripts"
+New-Item -ItemType Directory -Force -Path $scriptsDst | Out-Null
+Copy-Item -Path "$SourceDir\scripts\*" -Destination $scriptsDst -Recurse -Force
+OK "scripts/: installed"
+
+# 6. templates/ (no-clobber)
+Log "Installing templates/ (no-clobber)..."
+$tplDst = Join-Path $TargetDir "templates"
+New-Item -ItemType Directory -Force -Path $tplDst | Out-Null
+$tplSrc = Join-Path $SourceDir "templates"
+$tplAdded = 0
+$tplSkipped = 0
+Get-ChildItem -Path $tplSrc -Recurse -File | ForEach-Object {
+    $rel = $_.FullName.Substring($tplSrc.Length + 1)
+    $dst = Join-Path $tplDst $rel
+    $dstDir = Split-Path $dst -Parent
+    if (-not (Test-Path $dstDir)) { New-Item -ItemType Directory -Force -Path $dstDir | Out-Null }
+    if (Test-Path $dst) {
+        $tplSkipped++
+    } else {
+        Copy-Item $_.FullName $dst -Force
+        $tplAdded++
     }
 }
+OK "templates/: $tplAdded new files, $tplSkipped existing files preserved"
 
-# 4. Restore preserved files
-foreach ($f in $Preserve) {
-    $src = Join-Path $TmpDir $f
-    if (Test-Path $src) {
-        Copy-Item $src $TargetDir -Force
-    }
+# 7. CLAUDE.local.md scaffold
+$localMd = Join-Path $TargetDir "CLAUDE.local.md"
+if (-not (Test-Path $localMd)) {
+    @"
+# Personal — local-only (NOT pushed to repo)
+
+> This file is gitignored. Add your personal identity, tone, language preferences,
+> or project context here. Survives UPDATE.sh.
+
+## Identity
+- Name: <your-name>
+
+## Conversation tone
+- <your preferences>
+"@ | Out-File -FilePath $localMd -Encoding utf8
+    OK "CLAUDE.local.md: scaffold created"
+} else {
+    OK "CLAUDE.local.md: preserved (your existing file untouched)"
 }
-Remove-Item $TmpDir -Recurse -Force
 
-# 5. Verify
+# 8. Verify
 Write-Host ""
 Log "Running verification..."
 $VerifyScript = Join-Path $RepoDir "tests\verify-install.ps1"
 if (Test-Path $VerifyScript) {
     & $VerifyScript
-} else {
-    WarnMsg "verify-install.ps1 not found — skipping verification"
 }
 
+# 9. Summary
 Write-Host ""
-OK "claude-config v$Version installed successfully"
+OK "claude-config v$Version installed (non-destructive)"
 Write-Host ""
-Write-Host "📂 Backup: $BackupDir"
-Write-Host "📂 Active config: $TargetDir"
+Write-Host "  📂 Backup:        $BackupDir"
+Write-Host "  📂 Active config: $TargetDir"
 Write-Host ""
-Write-Host "Next: open Claude Code in any project. The cascade audit will run automatically."
+Write-Host "  Preserved untouched:"
+Write-Host "    - agents/, skills/, commands/, plugins/, sessions/, cache/"
+Write-Host "    - history.jsonl, credentials.json, CLAUDE.local.md"
+Write-Host "    - any rules/ files that already existed (with different content)"
+Write-Host ""
+Write-Host "  Merged safely:"
+Write-Host "    - CLAUDE.md (only block between <!-- claude-config:start/end --> markers)"
+Write-Host "    - settings.json (hooks union permissions union plugins union user keys)"
+Write-Host ""
+Write-Host "  Next: open Claude Code in any project. Cascade audit runs automatically."
