@@ -20,6 +20,7 @@
 ## Non-negotiable rules
 
 @~/.claude/rules/code-quality-standards.md
+@~/.claude/rules/scalability-principles.md
 @~/.claude/rules/no-legacy-rule.md
 @~/.claude/rules/per-module-claude-md.md
 @~/.claude/rules/project-detector.md

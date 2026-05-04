@@ -2,6 +2,23 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.3.0] — 2026-05-03
+
+### Added
+- New **`scalability-principles.md`** rule (always-active, language-agnostic).
+  - Stateless services, idempotency, async/event-driven, backpressure.
+  - Caching tiers (CDN / distributed / in-process).
+  - Database scaling patterns (read replicas, sharding, connection pooling).
+  - Observability (RED/USE methods, structured logs, tracing, SLO/SLI).
+  - Failure isolation (timeouts, retries with backoff, circuit breakers, bulkheads).
+  - Stateless deployments (immutable infra, health checks, graceful shutdown).
+  - Anti-patterns + "when NOT to apply" (avoid premature scaling).
+- Imported into root `CLAUDE.md` next to `code-quality-standards.md`.
+
+### Notes
+- Complements (does not duplicate) `erp/performance-at-scale.md` which is ERP-specific.
+- Applies to ALL projects (any language, any domain).
+
 ## [1.2.0] — 2026-05-03
 
 ### Added — ERP-grade support
