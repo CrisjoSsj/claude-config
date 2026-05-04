@@ -44,7 +44,48 @@ If all 4 answers in original message, skip interview.
 - medium → `~/.claude/templates/medium-project/`
 - large → `~/.claude/templates/large-project/`
 - monorepo → `~/.claude/templates/monorepo/`
+- **erp** → `~/.claude/templates/erp-project/` (when ERP signals match — see below)
 + stack overlay from `~/.claude/templates/_stack-overlays/<stack>/`
+
+### ERP detection signals (auto-promote large → erp)
+
+Mark project as **erp** if ≥3 of these are present (or user explicitly says "ERP"):
+- ≥1000 source files OR ≥10 first-level structural folders matching domain modules (accounting/, inventory/, sales/, hr/, procurement/, billing/, payroll/, etc.)
+- Has `migrations/` folder with ≥20 migration files
+- Has `tenants` / `tenant_id` references in code or schema
+- Has `audit_log` / `audit_trail` / `audited` references
+- Has `currencies`, `exchange_rates`, `Money` types or imports
+- Has `approval` / `approver` / `approval_chain` references
+- Has `compliance/` / `gdpr/` / `sox/` / `hipaa/` folder or markers
+- Has multiple bounded contexts evident in folder structure
+
+ERP projects load 8 extra rules from `~/.claude/rules/erp/`:
+- `domain-driven-design.md` — bounded contexts, aggregates, value objects, ACL
+- `database-migration-safety.md` — EXPAND → BACKFILL → CONTRACT pattern
+- `compliance-pii.md` — GDPR / SOX / HIPAA / PCI-DSS detection + audit log
+- `multi-tenancy.md` — tenant isolation invariants
+- `i18n-money-time.md` — Money type (Decimal), TZ at boundaries, locale
+- `state-machines-workflows.md` — explicit FSMs, approval chains, sagas, outbox
+- `cross-module-impact.md` — blast radius analysis before merge
+- `performance-at-scale.md` — N+1 prevention, query budgets, read replicas
+
+Also 4 specialized agents in `.claude/agents/`:
+- `compliance-auditor.md` (Opus model — regulation-aware review)
+- `migration-safety-reviewer.md` (Opus — DBA review)
+- `multi-tenancy-reviewer.md` — tenant isolation enforcement
+- (plus generic code-reviewer, security-auditor inherited from large-project)
+
+And 4 ERP-specific skills:
+- `add-bounded-context` — generates DDD scaffolding (domain, application, infrastructure, ACL, tests RED)
+- `audit-pii` — scans for PII leaks, missing classification, missing audit log
+- `impact-analysis` — computes blast radius of a change
+- `migration-safety-check` — validates EXPAND/BACKFILL/CONTRACT compliance
+
+And 4 slash commands:
+- `/new-bounded-context` — invokes add-bounded-context skill
+- `/audit-pii` — invokes audit-pii skill
+- `/impact-analysis` — invokes impact-analysis skill
+- `/migration-check` — invokes migration-safety-check skill
 
 ### Step 3: Apply template (in order)
 1. Root `CLAUDE.md` parameterized with name/stack/type.

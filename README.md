@@ -54,12 +54,15 @@ Eso es todo. En 30 segundos, tu `~/.claude/` queda configurado con las mismas re
 | `detect-structural-change.js` | PostToolUse | Detecta cambios estructurales y avisa actualizar CLAUDE.md |
 | `check-claude-md-freshness.js` | Stop | Valida drift de todos los CLAUDE.md antes de cerrar sesión |
 
-### 4 templates de proyectos (`templates/`)
+### 5 templates de proyectos (`templates/`)
 
 - **small-project**: <20 archivos, MVP, prototipos.
 - **medium-project**: 20-200 archivos.
 - **large-project**: 200+ archivos. Incluye `docs/adr/` con ADR-0001 inicial, `ARCHITECTURE.md`, `GLOSSARY.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `.claude/{settings.json, agents/, skills/, commands/}`.
 - **monorepo**: multi-package coordinado.
+- **erp-project** (v1.2.0+): ERP-grade. Carga 8 reglas extra: DDD/bounded contexts, migration safety (EXPAND→BACKFILL→CONTRACT), compliance/PII (GDPR/SOX/HIPAA/PCI), multi-tenancy, i18n/Money type, state machines + sagas, cross-module impact, performance at scale. Incluye 3 agents (compliance-auditor, migration-safety-reviewer, multi-tenancy-reviewer), 4 skills (add-bounded-context, audit-pii, impact-analysis, migration-safety-check), 4 slash commands.
+
+Auto-detección ERP: si tu proyecto tiene ≥1000 archivos + migrations/ + tenancy + compliance markers, el `project-detector` promueve `large` → `erp` automáticamente.
 
 ### Slash commands incluidos en templates
 

@@ -2,6 +2,32 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.2.0] — 2026-05-03
+
+### Added — ERP-grade support
+
+**8 new ERP rules** in `claude-config/rules/erp/`:
+- `domain-driven-design.md` — bounded contexts, aggregates, value objects, ACL, domain events
+- `database-migration-safety.md` — EXPAND → BACKFILL → CONTRACT pattern for zero-downtime
+- `compliance-pii.md` — GDPR / SOX / HIPAA / PCI-DSS detection, audit log, right-to-erasure
+- `multi-tenancy.md` — tenant isolation invariants, RLS, customization patterns
+- `i18n-money-time.md` — Money type (Decimal + currency), TZ at boundaries, locale formatting
+- `state-machines-workflows.md` — explicit FSMs, approval chains, sagas, outbox pattern
+- `cross-module-impact.md` — blast radius analysis, downstream consumer mapping
+- `performance-at-scale.md` — N+1 prevention per ORM, query budgets, read replicas, caching
+
+**New `erp-project/` template** with:
+- 3 specialized agents: `compliance-auditor`, `migration-safety-reviewer`, `multi-tenancy-reviewer`
+- 4 ERP skills: `add-bounded-context`, `audit-pii`, `impact-analysis`, `migration-safety-check`
+- 4 slash commands: `/new-bounded-context`, `/audit-pii`, `/impact-analysis`, `/migration-check`
+- Pre-configured for: bounded contexts, ADR system, business-rules registry, compliance docs
+
+**`project-detector.md` updated**: auto-detects ERP signals (≥1000 files, migrations, multi-tenant patterns, compliance markers) and promotes `large` → `erp` template.
+
+### Notes
+- ERP rules are **NOT** loaded in the global CLAUDE.md — they only activate inside `erp-project/` template (lazy load via Claude Code's descendant CLAUDE.md mechanism), so non-ERP projects don't carry their weight.
+- The 8 ERP rules add ~3500 lines of dense guidance, all in English directives + Spanish comments.
+
 ## [1.1.0] — 2026-05-03
 
 ### Changed (BREAKING for existing users? NO — safer)
