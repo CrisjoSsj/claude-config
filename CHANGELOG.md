@@ -2,6 +2,23 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.6.0] — 2026-05-04
+
+### Added
+- **`technical-debt-management.md`** — measure, prioritize, pay down tech debt systematically.
+  - 10 categorías: code, design, test, documentation, dependency, infrastructure, knowledge, security, performance, compliance.
+  - Cuantificación con métricas concretas (cyclomatic complexity, coverage, outdated deps, CVEs, etc.).
+  - Tech Debt Score = CRITICAL × 10 + HIGH × 5 + MEDIUM × 2 + LOW × 1.
+  - Registro vivo en `docs/tech-debt.md` auto-mantenido por IA.
+  - Matriz impact × effort para priorización (quick wins / strategic / opportunistic / skip).
+  - Boy Scout Rule: pago continuo en cada PR.
+  - Integración con `no-legacy-rule.md` (subcategoría dead code) y `cleanup-decision-tree.md` (acción).
+  - Métricas de éxito tracking (baseline → target en N semanas).
+- **`audit-tech-debt` skill** en templates large-project + erp-project.
+- **`/audit-tech-debt` slash command** para invocar el skill.
+
+### Total active @imports: **29** (was 28).
+
 ## [1.5.0] — 2026-05-03
 
 ### Added
