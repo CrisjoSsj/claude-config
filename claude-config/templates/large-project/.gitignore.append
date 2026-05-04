@@ -1,0 +1,7 @@
+# --- Claude Code (auto-added by global bootstrap) ---
+CLAUDE.local.md
+.claude/cache/
+.claude/sessions/
+.claude/audit/
+*.bak
+*.copy.*
