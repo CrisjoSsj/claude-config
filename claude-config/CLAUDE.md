@@ -24,6 +24,7 @@
 @~/.claude/rules/component-reusability.md
 @~/.claude/rules/semver-and-deprecation.md
 @~/.claude/rules/onboarding-and-refactor-safety.md
+@~/.claude/rules/cleanup-decision-tree.md
 @~/.claude/rules/no-legacy-rule.md
 @~/.claude/rules/per-module-claude-md.md
 @~/.claude/rules/project-detector.md

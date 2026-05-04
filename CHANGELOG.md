@@ -2,6 +2,19 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.5.0] — 2026-05-03
+
+### Added
+- **`cleanup-decision-tree.md`** — explicit decision tree for cleanup tasks.
+  - Q1-Q7 cascading questions: eliminate / consolidate / refactor internal / rewrite / refactor by layers / characterization tests first
+  - Decision matrix (call-sites × test coverage × public API → action + risk)
+  - Default priority: **Eliminate > Consolidate > Refactor Internal > Rewrite + deprecation**
+  - Common ERP cleanup scenarios with recommended actions
+  - Reporting format mandatory before applying destructive cleanup
+- Imported globally — applies to ALL projects (especially valuable for legacy ERP refactor).
+
+### Total active @imports: 28 (was 27 in v1.4.0).
+
 ## [1.4.0] — 2026-05-03
 
 ### Added — 100% structural coverage
