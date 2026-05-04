@@ -2,6 +2,31 @@
 
 All notable changes to this Claude Code config setup are documented here.
 
+## [1.4.0] — 2026-05-03
+
+### Added — 100% structural coverage
+
+3 new always-active rules to close gaps detected in structural audit:
+
+- **`component-reusability.md`** — Composition patterns for components and modules.
+  - Frontend: Atomic Design, compound components, render props, container/presentational, headless+styled, polymorphic, Storybook catalog.
+  - Backend: module composition, single responsibility, DI, hexagonal layering, library design.
+  - Reusability checklist mandatory before merging shared components.
+- **`semver-and-deprecation.md`** — Versioning + deprecation without breaking consumers.
+  - MAJOR.MINOR.PATCH rules, public API definition.
+  - 2-cycle deprecation protocol (announce in MINOR, remove in MAJOR).
+  - Min deprecation windows (1 release internal, 6 months external, 12 months critical).
+  - CHANGELOG.md format per keepachangelog.com.
+- **`onboarding-and-refactor-safety.md`** — Productivity in hours + safe refactors.
+  - Onboarding protocol: orientation (≤15min), trace happy path (≤30min), danger zones.
+  - Refactor safety: pre/during/post checklists, mechanical-then-behavioral, small steps.
+  - Patterns by scope: tiny / small / large refactors. When NOT to refactor.
+
+### Structural audit
+- Total @imports in root CLAUDE.md: **27** (up from 22).
+- 27/27 imports resolve, 0 orphan rules, 0 broken cross-references.
+- All ERP rules correctly lazy-loaded via erp-project template only.
+
 ## [1.3.0] — 2026-05-03
 
 ### Added

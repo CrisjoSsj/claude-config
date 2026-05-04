@@ -21,6 +21,9 @@
 
 @~/.claude/rules/code-quality-standards.md
 @~/.claude/rules/scalability-principles.md
+@~/.claude/rules/component-reusability.md
+@~/.claude/rules/semver-and-deprecation.md
+@~/.claude/rules/onboarding-and-refactor-safety.md
 @~/.claude/rules/no-legacy-rule.md
 @~/.claude/rules/per-module-claude-md.md
 @~/.claude/rules/project-detector.md
